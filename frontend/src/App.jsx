@@ -6,8 +6,11 @@ import {
   Autocomplete,
 } from "@react-google-maps/api";
 import axios from "axios";
+import { BACKEND_URL } from "./config";
+import './index.css';
+// import TestComponent from "./test";
 
-const mapContainerStyle = { width: "100%", height: "400px" };
+const mapContainerStyle = { width: "100%", height: "400px", borderRadius: "8px" };
 const center = { lat: 20.5937, lng: 78.9629 }; // Default center (India)
 
 const App = () => {
@@ -24,7 +27,7 @@ const App = () => {
   // Fetch saved addresses from the backend
   const fetchAddresses = async () => {
     try {
-      const { data } = await axios.get("http://localhost:5000/api/addresses");
+      const { data } = await axios.get(`${BACKEND_URL}/addresses`);
       setSavedAddresses(data);
     } catch (error) {
       console.error("Error fetching addresses:", error);
@@ -35,13 +38,33 @@ const App = () => {
   const handleLocateMe = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
+        async (position) => {
           const { latitude, longitude } = position.coords;
+
+          // Update the current position
           setCurrentPosition({ lat: latitude, lng: longitude });
-          fetchAddressFromCoords(latitude, longitude);
+
+          // Fetch the address from coordinates and update the address state
+          try {
+            const apiKey = "your api"; // Replace with your API key
+            const response = await axios.get(
+              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
+            );
+
+            if (response.data.results.length > 0) {
+              const fetchedAddress = response.data.results[0].formatted_address;
+              setAddress(fetchedAddress);
+            } else {
+              setAddress("Unable to fetch address.");
+            }
+          } catch (error) {
+            console.error("Error fetching address:", error);
+            setAddress("Error fetching address.");
+          }
         },
-        () => {
+        (error) => {
           alert("Location permission denied or unavailable.");
+          console.error("Error fetching location:", error);
         }
       );
     } else {
@@ -62,7 +85,7 @@ const App = () => {
 
   // Fetch address from coordinates using Google Geocoding API
   const fetchAddressFromCoords = async (lat, lng) => {
-    const apiKey = "YOUR_GOOGLE_MAPS_API_KEY"; // Replace with your API key
+    const apiKey = "your api"; // Replace with your API key
     try {
       const response = await axios.get(
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
@@ -90,7 +113,7 @@ const App = () => {
       return;
     }
     try {
-      await axios.post("http://localhost:5000/api/save-address", {
+      await axios.post(`${BACKEND_URL}/save-address`, {
         address,
         category,
       });
@@ -105,7 +128,7 @@ const App = () => {
   // Delete a saved address
   const deleteAddress = async (id) => {
     try {
-      await axios.delete(`http://localhost:5000/api/delete-address/${id}`);
+      await axios.delete(`${BACKEND_URL}/delete-address/${id}`);
       fetchAddresses();
     } catch (error) {
       console.error("Error deleting address:", error);
@@ -113,94 +136,103 @@ const App = () => {
   };
 
   return (
-    <LoadScript googleMapsApiKey="YOUR_GOOGLE_MAPS_API_KEY" libraries={["places"]}>
-      <div className="max-w-3xl mx-auto p-8">
-        <h1 className="text-3xl font-semibold mb-6 text-center text-blue-600">
-          Location Selection Interface
-        </h1>
+    <>
+      {/* <TestComponent/> */}
+      <LoadScript googleMapsApiKey="your api" libraries={["places"]}>
+        <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 min-h-screen p-8">
+          <div className="max-w-3xl mx-auto p-6 bg-white shadow-xl rounded-lg">
+            <h1 className="text-7xl font-bold mb-6 text-center text-purple-700">
+              Location Selector
+            </h1>
+            <div className="bg-red-500 text-white p-4">Test Tailwind</div>
 
-        {/* Autocomplete Search */}
-        <Autocomplete
-          onLoad={(auto) => setAutocomplete(auto)}
-          onPlaceChanged={handlePlaceChanged}
-        >
-          <input
-            type="text"
-            placeholder="Search for an address"
-            className="w-full p-3 border border-gray-300 rounded-lg mb-4 shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </Autocomplete>
 
-        {/* Locate Me Button */}
-        <div className="text-center mb-6">
-          <button
-            onClick={handleLocateMe}
-            className="bg-blue-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-blue-700 transition duration-300"
-          >
-            Locate Me
-          </button>
-        </div>
-
-        {/* Display Selected Address */}
-        <p className="text-lg font-medium text-gray-700 mb-6">
-          <strong>Current Address:</strong> {address || "No address selected"}
-        </p>
-
-        {/* Google Map */}
-        <GoogleMap
-          mapContainerStyle={mapContainerStyle}
-          center={currentPosition}
-          zoom={15}
-        >
-          <Marker
-            position={currentPosition}
-            draggable
-            onDragEnd={handleMarkerDragEnd}
-          />
-        </GoogleMap>
-
-        {/* Address Form */}
-        <div className="mt-6 mb-6 p-4 border border-gray-300 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Save Address</h2>
-          <div className="flex mb-4">
-            <select
-              onChange={(e) => setCategory(e.target.value)}
-              className="border border-gray-300 rounded-md p-2 mr-4 w-1/2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            {/* Autocomplete Search */}
+            <Autocomplete
+              onLoad={(auto) => setAutocomplete(auto)}
+              onPlaceChanged={handlePlaceChanged}
             >
-              <option value="">Select Category</option>
-              <option value="Home">Home</option>
-              <option value="Office">Office</option>
-              <option value="Friends & Family">Friends & Family</option>
-            </select>
-            <button
-              onClick={saveAddress}
-              className="bg-green-600 text-white py-2 px-6 rounded-lg shadow-md hover:bg-green-700 transition duration-300"
-            >
-              Save Address
-            </button>
+              <input
+                type="text"
+                placeholder="Search for an address"
+                className="w-full p-4 border border-gray-300 rounded-lg mb-6 shadow focus:outline-none focus:ring-4 focus:ring-purple-400"
+              />
+            </Autocomplete>
+
+            {/* Locate Me Button */}
+            <div className="text-center mb-8">
+              <button
+                onClick={handleLocateMe}
+                className="bg-gradient-to-br from-blue-500 to-purple-500 text-white py-3 px-8 rounded-full shadow-lg hover:opacity-90 transition-all duration-300"
+              >
+                Locate Me
+              </button>
+            </div>
+
+            {/* Display Selected Address */}
+            <p className="text-lg font-medium text-gray-800 mb-8 bg-purple-100 p-4 rounded-lg shadow">
+              <strong>Current Address:</strong> {address || "No address selected"}
+            </p>
+
+            {/* Google Map */}
+            <div className="overflow-hidden rounded-lg shadow-lg mb-8 border-4 border-purple-300">
+              <GoogleMap
+                mapContainerStyle={mapContainerStyle}
+                center={currentPosition}
+                zoom={15}
+              >
+                <Marker
+                  position={currentPosition}
+                  draggable
+                  onDragEnd={handleMarkerDragEnd}
+                />
+              </GoogleMap>
+            </div>
+
+            {/* Address Form */}
+            <div className="p-6 bg-purple-50 border border-purple-200 rounded-lg shadow mb-8">
+              <h2 className="text-2xl font-semibold mb-4 text-purple-800">Save Address</h2>
+              <div className="flex items-center gap-4">
+                <select
+                  onChange={(e) => setCategory(e.target.value)}
+                  className="flex-1 border border-gray-300 rounded-md p-3 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                >
+                  <option value="">Select Category</option>
+                  <option value="Home">Home</option>
+                  <option value="Office">Office</option>
+                  <option value="Friends & Family">Friends & Family</option>
+                </select>
+                <button
+                  onClick={saveAddress}
+                  className="bg-gradient-to-br from-green-500 to-teal-500 text-white py-3 px-6 rounded-full shadow-lg hover:opacity-90 transition-all duration-300"
+                >
+                  Save Address
+                </button>
+              </div>
+            </div>
+
+            {/* Saved Addresses */}
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Saved Addresses</h2>
+            <ul className="space-y-4">
+              {savedAddresses.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex justify-between items-center bg-gray-100 p-4 rounded-lg shadow-md hover:bg-gray-200"
+                >
+                  <span className="text-gray-700">{item.address} ({item.category})</span>
+                  <button
+                    onClick={() => deleteAddress(item.id)}
+                    className="bg-gradient-to-br from-red-500 to-pink-500 text-white py-2 px-4 rounded-lg shadow-md hover:opacity-90 transition-all duration-300"
+                  >
+                    Delete
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-
-        {/* Saved Addresses */}
-        <h2 className="text-2xl font-semibold text-gray-800 mb-4">Saved Addresses</h2>
-        <ul className="space-y-4">
-          {savedAddresses.map((item) => (
-            <li
-              key={item.id}
-              className="flex justify-between items-center bg-gray-100 p-4 rounded-lg shadow-md hover:bg-gray-200"
-            >
-              <span className="text-gray-700">{item.address} ({item.category})</span>
-              <button
-                onClick={() => deleteAddress(item.id)}
-                className="bg-red-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-red-700 transition duration-300"
-              >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </LoadScript>
+      </LoadScript>
+    </>
   );
 };
 
