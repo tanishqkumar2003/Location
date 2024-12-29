@@ -144,8 +144,6 @@ const App = () => {
             <h1 className="text-7xl font-bold mb-6 text-center text-purple-700">
               Location Selector
             </h1>
-            <div className="bg-red-500 text-white p-4">Test Tailwind</div>
-
 
             {/* Autocomplete Search */}
             <Autocomplete
