@@ -47,7 +47,7 @@ const App = () => {
 
           // Fetch the address from coordinates and update the address state
           try {
-            const apiKey = "AIzaSyCJWZ6Syrs4iVKcPiqPLwR6DI6lOmTiNu0"; // Replace with AIzaSyCJWZ6Syrs4iVKcPiqPLwR6DI6lOmTiNu0 key
+            const apiKey = "your api"; // Replace with your api key
             const response = await axios.get(
               `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${apiKey}`
             );
@@ -86,7 +86,7 @@ const App = () => {
 
   // Fetch address from coordinates using Google Geocoding API
   const fetchAddressFromCoords = async (lat, lng) => {
-    const apiKey = "AIzaSyCJWZ6Syrs4iVKcPiqPLwR6DI6lOmTiNu0"; // Replace with your API key
+    const apiKey = "your api"; // Replace with your API key
     try {
       const response = await axios.get(
         `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lng}&key=${apiKey}`
@@ -139,7 +139,7 @@ const App = () => {
   return (
     <>
       {/* <TestComponent/> */}
-      <LoadScript googleMapsApiKey="AIzaSyCJWZ6Syrs4iVKcPiqPLwR6DI6lOmTiNu0" libraries={["places"]}>
+      <LoadScript googleMapsApiKey="your api" libraries={["places"]}>
         <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 min-h-screen p-8">
           <div className="max-w-3xl mx-auto p-6 bg-white shadow-xl rounded-lg">
             <h1 className="text-7xl font-bold mb-6 text-center text-purple-700">
